@@ -29,7 +29,6 @@ export function useProduct(id: number) {
   })
 }
 
-/** Tax rate from the backend; falls back to 15% only if the endpoint fails. */
 export function useTaxRate() {
   const query = useQuery({ queryKey: queryKeys.tax, queryFn: api.getTax, staleTime: Infinity })
   return {

@@ -59,7 +59,6 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
           ],
         }
       }
-      // Refresh name/price with the latest product data while accumulating quantity.
       return {
         lines: state.lines.map((line) =>
           line.productId === product.id
