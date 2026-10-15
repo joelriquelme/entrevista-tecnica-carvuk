@@ -1,11 +1,12 @@
 from django.db.models import Prefetch
 from rest_framework import mixins, status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
 from .models import Product, Receipt, ReceiptItem
 from .serializers import ProductSerializer, ReceiptCreateSerializer, ReceiptSerializer
 from .services.receipts import create_receipt
+from .services.sii import request_sii_emission
 from .services.tax import TAX_RATE
 
 
@@ -31,5 +32,18 @@ class ReceiptViewSet(
         receipt = create_receipt(payload.validated_data['items'])
         return Response(self._serialize(receipt.pk), status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'])
+    def emit(self, request, pk=None):
+        """Retry the SII emission of a receipt that is pending or failed."""
+        receipt = self.get_object()
+        if receipt.sii_status not in (Receipt.SiiStatus.PENDING, Receipt.SiiStatus.FAILED):
+            return Response(
+                {'detail': f'La boleta ya está en estado "{receipt.get_sii_status_display()}".'},
+                status=status.HTTP_409_CONFLICT,
+            )
+        request_sii_emission(receipt.pk)
+        return Response(self._serialize(receipt.pk))
+
     def _serialize(self, pk):
+        # Re-read: the SII request (and even its webhook) may have changed the receipt meanwhile.
         return self.get_serializer(self.get_queryset().get(pk=pk)).data

@@ -43,3 +43,9 @@ class CartItemSerializer(serializers.Serializer):
 class ReceiptCreateSerializer(serializers.Serializer):
     items = CartItemSerializer(many=True, allow_empty=False, error_messages={'empty': 'El carrito está vacío.'})
 
+
+class SiiWebhookSerializer(serializers.Serializer):
+    documentId = serializers.IntegerField(min_value=1)
+    status = serializers.CharField(max_length=50)
+    siiCode = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    pdfUrl = serializers.URLField(max_length=500, required=False, allow_blank=True, default='')

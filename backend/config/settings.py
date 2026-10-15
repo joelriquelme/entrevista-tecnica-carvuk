@@ -143,6 +143,16 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
 
 
+# SII mock integration (Pipedream) and webhook
+
+SII_API_URL = os.environ.get('SII_API_URL', '')
+SII_TIMEOUT_SECONDS = 10
+# Public URL where this backend is reachable (tunnel or production). Used to build the callbackUrl.
+PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', '').rstrip('/')
+# Shared secret sent as a query param in the callbackUrl and checked by the webhook.
+SII_WEBHOOK_TOKEN = os.environ.get('SII_WEBHOOK_TOKEN', '')
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
