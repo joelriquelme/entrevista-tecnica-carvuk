@@ -34,6 +34,11 @@ if DEBUG:
     # Allow local tunnels (ngrok / cloudflared) used to receive the SII webhook.
     ALLOWED_HOSTS += ['.ngrok-free.app', '.ngrok.app', '.trycloudflare.com']
 
+# Render exposes the service hostname/URL; use them so production needs less configuration.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 
 # Application definition
 
@@ -132,7 +137,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Behind a TLS-terminating proxy (Render) in production.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 
 # Authentication (Clerk)
@@ -166,7 +175,7 @@ CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,h
 SII_API_URL = os.environ.get('SII_API_URL', '')
 SII_TIMEOUT_SECONDS = 10
 # Public URL where this backend is reachable (tunnel or production). Used to build the callbackUrl.
-PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', '').rstrip('/')
+PUBLIC_BASE_URL = (os.environ.get('PUBLIC_BASE_URL') or os.environ.get('RENDER_EXTERNAL_URL', '')).rstrip('/')
 # Shared secret sent as a query param in the callbackUrl and checked by the webhook.
 SII_WEBHOOK_TOKEN = os.environ.get('SII_WEBHOOK_TOKEN', '')
 
