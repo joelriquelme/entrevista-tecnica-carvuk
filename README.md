@@ -238,8 +238,9 @@ sequenceDiagram
 - Cualquier `status` del webhook distinto de `issued` deja la boleta en `failed` con el detalle.
 
 **Usuarios y catálogo**
+- **La aplicación es la vista de administrador de la tienda** (backoffice), no una vitrina para clientes finales. Por eso, quien inicia sesión puede crear, editar y eliminar productos además de armar carritos y generar boletas. No hay roles: todo usuario con sesión es administrador.
 - Con Clerk activo, **cada usuario ve solo sus boletas** (se guarda el `id` de Clerk en `created_by`).
-- El catálogo es compartido por la tienda: cualquier usuario con sesión puede administrarlo.
+- El catálogo es compartido por la tienda: todos los administradores ven y editan los mismos productos.
 - Las boletas creadas con la auth desactivada no tienen usuario y no aparecen cuando se activa Clerk.
 - No hay tabla local de usuarios: Clerk es la fuente de verdad.
 

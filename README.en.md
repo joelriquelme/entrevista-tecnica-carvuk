@@ -247,9 +247,10 @@ sequenceDiagram
 - Any webhook `status` other than `issued` marks the receipt `failed`, with the details.
 
 **Users**
+- **The app is the store's administrator view** (backoffice), not a storefront for end customers. That's why signed-in users can create, edit and delete products as well as build carts and generate receipts. There are no roles: every signed-in user is an administrator.
 - With Clerk enabled, **each user only sees their own receipts**: the Clerk user `id` is stored in `created_by`. There is no local user table; Clerk is the source of truth.
 - Receipts created while auth was disabled have no user, so they don't show up once Clerk is enabled.
-- The catalog belongs to the store, so any signed-in user can manage it.
+- The catalog belongs to the store: all administrators see and edit the same products.
 
 **Sample data**
 - The sample products (milk, bread, oil, rice, eggs, sugar, pasta and coffee) are loaded by a data migration when running `migrate`.
