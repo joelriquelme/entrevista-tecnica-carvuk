@@ -6,6 +6,7 @@ Every environment-specific value is read from environment variables
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -89,6 +90,12 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
+
+# Tests always run on SQLite (in memory) so they never touch Supabase.
+TESTING = sys.argv[1:2] == ['test']
+if TESTING:
+    DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}
+TEST_RUNNER = 'config.test_runner.IsolatedTestRunner'
 
 
 # Password validation
