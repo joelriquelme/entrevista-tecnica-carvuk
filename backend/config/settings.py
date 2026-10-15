@@ -128,9 +128,20 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
 
 
+# Authentication (Clerk)
+
+AUTH_ENABLED = env_bool('AUTH_ENABLED', False)
+CLERK_PUBLISHABLE_KEY = os.environ.get('CLERK_PUBLISHABLE_KEY', '')
+CLERK_JWKS_URL = os.environ.get('CLERK_JWKS_URL', '')
+
+
 # Django REST Framework
 
 REST_FRAMEWORK = {
+    # Clerk auth is always wired; AUTH_ENABLED switches it on/off per request.
+    'DEFAULT_AUTHENTICATION_CLASSES': ['store.authentication.ClerkJWTAuthentication'],
+    'DEFAULT_PERMISSION_CLASSES': ['store.permissions.IsAuthenticatedWhenEnabled'],
+    'UNAUTHENTICATED_USER': None,
     'DEFAULT_RENDERER_CLASSES': (
         ['rest_framework.renderers.JSONRenderer', 'rest_framework.renderers.BrowsableAPIRenderer']
         if DEBUG else ['rest_framework.renderers.JSONRenderer']

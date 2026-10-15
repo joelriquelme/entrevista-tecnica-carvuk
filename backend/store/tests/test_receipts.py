@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from store.authentication import ClerkUser
 from store.models import Product, Receipt
 
 
@@ -60,3 +61,12 @@ class ReceiptApiTests(APITestCase):
         ids = [r['id'] for r in self.client.get(reverse('receipt-list')).data]
         self.assertEqual(ids, [second, first])
 
+    def test_each_user_only_sees_their_receipts(self):
+        self.client.force_authenticate(ClerkUser(id='user_a'))
+        own = self.create([{'product_id': self.milk.id, 'quantity': 1}]).data
+        self.assertEqual(own['created_by'], 'user_a')
+
+        self.client.force_authenticate(ClerkUser(id='user_b'))
+        self.assertEqual(self.client.get(reverse('receipt-list')).data, [])
+        response = self.client.get(reverse('receipt-detail', args=[own['id']]))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

@@ -26,11 +26,20 @@ class ReceiptViewSet(
     queryset = Receipt.objects.prefetch_related(Prefetch('items', queryset=ReceiptItem.objects.order_by('id')))
     serializer_class = ReceiptSerializer
 
+    def get_queryset(self):
+        # With auth enabled every user only sees the receipts they created.
+        queryset = super().get_queryset()
+        user_id = self._user_id()
+        return queryset.filter(created_by=user_id) if user_id else queryset
+
     def create(self, request, *args, **kwargs):
         payload = ReceiptCreateSerializer(data=request.data)
         payload.is_valid(raise_exception=True)
-        receipt = create_receipt(payload.validated_data['items'])
+        receipt = create_receipt(payload.validated_data['items'], created_by=self._user_id())
         return Response(self._serialize(receipt.pk), status=status.HTTP_201_CREATED)
+
+    def _user_id(self) -> str:
+        return getattr(self.request.user, 'id', '') or ''
 
     @action(detail=True, methods=['post'])
     def emit(self, request, pk=None):
