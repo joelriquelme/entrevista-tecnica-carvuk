@@ -6,6 +6,17 @@ A small neighborhood e-commerce app. It keeps a product catalog, builds a cart a
 
 Full-stack technical test for Carvuk ([statement, in Spanish](https://carvuk.notion.site/prueba-tecnica-full)).
 
+## 🌐 Production
+
+| | URL |
+| --- | --- |
+| **App (frontend, Vercel)** | https://entrevista-tecnica-zeta.vercel.app |
+| API (backend, Render) | https://carrito-feliz-api.onrender.com/api/ |
+| SII webhook | `https://carrito-feliz-api.onrender.com/webhooks/sii/?token=…` |
+
+- **Account:** to get in, create an account in the Clerk sign-in (email plus a verification code).
+- **First load:** the backend runs on Render's free plan, which **puts the service to sleep after 15 min of inactivity**. The first request can take ~50 s while it wakes up.
+
 ## Features
 
 | Requirement | Status |
@@ -89,6 +100,10 @@ Vite proxies `/api/*` to the backend on `127.0.0.1:8000`, so both servers must b
 cd backend && python manage.py test          # 32 tests
 cd frontend && npm test && npm run lint && npm run build
 ```
+
+Backend tests don't depend on `.env`:
+- They run on in-memory SQLite, so they never touch Supabase.
+- Clerk and the SII mock are disabled; each test enables them explicitly when needed.
 
 ### Environment variables
 
@@ -183,6 +198,18 @@ sequenceDiagram
 
 > The mock allows few requests (100 in total). That's why issuing is **not** triggered automatically when a receipt is created; it's requested with the button. The tests mock Pipedream and never call it.
 
+### Seeing it work in production
+
+1. Open https://entrevista-tecnica-zeta.vercel.app and create an account.
+2. Fill a cart, generate the receipt and click **"Emitir en SII"**.
+3. The backend on Render sends Pipedream `callbackUrl = https://carrito-feliz-api.onrender.com/webhooks/sii/?token=…`.
+4. The webhook arrives within ~20–60 s and the receipt becomes **Emitida**, with SII number and PDF. No reload is needed.
+
+**Real production run (2026-10-15):**
+- **Receipt #5:** gross $6.000, tax $900, net $5.100.
+- **Issuing:** requested at 17:50:20 (UTC-3).
+- **Webhook:** reached Render at 17:50:39 with `{"documentId": 5, "status": "issued", "siiCode": "SII-5", "pdfUrl": "…pdf-sample_0.pdf"}`, and the receipt became **Emitida**.
+
 ### Evidence from a real run (2026-10-15, local with cloudflared)
 
 1. **Webhook without a token:** got `403`, logged as `WebhookEvent #1` with the error "Token inválido".
@@ -214,6 +241,21 @@ sequenceDiagram
 1. Create an application at [dashboard.clerk.com](https://dashboard.clerk.com).
 2. Put its publishable key in `frontend/.env` (`VITE_CLERK_PUBLISHABLE_KEY`).
 3. Put the same key in `backend/.env` (`CLERK_PUBLISHABLE_KEY`), along with `AUTH_ENABLED=True`.
+
+## Deployment
+
+**Backend on Render**
+- Configured by the [`render.yaml`](render.yaml) blueprint (*New → Blueprint*).
+- The build runs `pip install`, `collectstatic` and `migrate`; the app is served by `gunicorn`, and admin static files by WhiteNoise.
+- `SECRET_KEY` and `SII_WEBHOOK_TOKEN` are generated automatically.
+- `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` and the `callbackUrl` base come from `RENDER_EXTERNAL_HOSTNAME`/`RENDER_EXTERNAL_URL`.
+- Only `DATABASE_URL`, `CORS_ALLOWED_ORIGINS` (the Vercel URL) and `CLERK_PUBLISHABLE_KEY` are entered by hand.
+- `DATABASE_URL` must be Supabase's **Session pooler** connection (`aws-0-<region>.pooler.supabase.com`), because Render has no IPv6 and the direct `db.<ref>.supabase.co` host is IPv6-only.
+
+**Frontend on Vercel**
+- Import the repo with *Root Directory* `frontend`; Vite is auto-detected.
+- Variables: `VITE_API_URL=https://carrito-feliz-api.onrender.com/api` and `VITE_CLERK_PUBLISHABLE_KEY`.
+- [`vercel.json`](frontend/vercel.json) rewrites every route to `index.html`, because the app is a SPA.
 
 ## API
 
@@ -254,3 +296,4 @@ sequenceDiagram
 
 **Sample data**
 - The sample products (milk, bread, oil, rice, eggs, sugar, pasta and coffee) are loaded by a data migration when running `migrate`.
+- Production and local development share the same Supabase project, for simplicity in this test. Receipts from local runs therefore also show up in production, for the same user.
