@@ -297,3 +297,43 @@ sequenceDiagram
 **Sample data**
 - The sample products (milk, bread, oil, rice, eggs, sugar, pasta and coffee) are loaded by a data migration when running `migrate`.
 - Production and local development share the same Supabase project, for simplicity in this test. Receipts from local runs therefore also show up in production, for the same user.
+
+## Improvement proposals
+
+Ideas I didn't get to implement, ordered by their impact on the store's day-to-day work.
+
+### For users and the business
+
+1. **Automatic SII issuing at the end of the day, with an option to exclude a receipt.**
+   - **The problem:** issuing currently depends on someone clicking "Emitir en SII". On a busy day that's easy to forget, and the receipt is never reported.
+   - **The proposal:** don't put the whole responsibility on the user.
+     - At closing time (configurable), every receipt that is still pending is sent automatically.
+     - The manual button stays for anyone who wants to issue right away.
+   - **Exclusions:** each receipt would have a **"Don't send at closing"** option, for cases that need review before being reported, such as a sale with a mistake or an amount still to be confirmed. Excluded receipts:
+     - are highlighted the next day, with the reason, so they aren't forgotten indefinitely;
+     - appear in a summary of the run: how many were sent, how many were excluded and which ones failed.
+2. **Daily till close.** A summary of the day with:
+   - total sales and tax collected;
+   - receipts issued, pending and excluded.
+
+   It pairs with automatic issuing: the owner checks what was reported to the SII and what is still pending, and closes the day with a balanced till.
+3. **Send the receipt to the customer.** At the end of the sale, offer to send the PDF by email or WhatsApp, like an electronic receipt, instead of it only living in the store's history.
+4. **Discounts and promotions.**
+   - Percentage discounts, 2-for-1 or "buy 3, pay 2", which are very common in a neighborhood store.
+   - Tax would always be computed on the final amount charged, so the receipt reflects what the customer actually paid.
+5. **Frequent sales.**
+   - Repeat a previous receipt, or save a "favorite cart" for regular customers (the daily bread and milk).
+   - This builds the sale in one click instead of searching product by product.
+6. **Price change audit.** Record who changed a product's price, when, and the old and new values. With several administrators, this helps explain differences in the till or on receipts.
+7. **Roles with Clerk.**
+   - Distinguish **administrators** (manage catalog and prices) from **cashiers** (only build carts and generate receipts), using Clerk metadata or Organizations.
+   - Today every signed-in user is an administrator (see assumptions).
+8. **Deactivate products and track stock.**
+   - Instead of deleting a product, mark it inactive, so it can't be sold but keeps its history.
+   - Track inventory that decreases when a receipt is generated, with low-stock warnings.
+9. **Pagination, filters and search.** Paginate the history, filter it by date or SII status, and search products in the catalog. It works fine with little data today, but wouldn't scale to months of sales.
+
+### Technical
+
+- **CI with GitHub Actions:** on every push and pull request, run the backend tests, lint, frontend tests and build, and block the merge when something fails.
+- **Docker Compose:** start the backend, frontend and a local Postgres with a single command, without installing Python or Node.
