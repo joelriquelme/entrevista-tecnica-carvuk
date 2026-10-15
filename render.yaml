@@ -1,0 +1,32 @@
+# Render Blueprint for the Django API (New → Blueprint → select this repo).
+services:
+  - type: web
+    name: carrito-feliz-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    # The API requires a Clerk session, so use a public page for the health check.
+    healthCheckPath: /admin/login/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL # Supabase *Session pooler* connection string (Render has no IPv6)
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS # Vercel frontend URL, e.g. https://carrito-feliz.vercel.app
+        sync: false
+      - key: SII_API_URL
+        value: https://eoej5sf0r8zkoh2.m.pipedream.net
+      - key: SII_WEBHOOK_TOKEN
+        generateValue: true
+      - key: AUTH_ENABLED
+        value: "True"
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      # ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS and PUBLIC_BASE_URL (callbackUrl) are derived
+      # from RENDER_EXTERNAL_HOSTNAME / RENDER_EXTERNAL_URL in config/settings.py.
