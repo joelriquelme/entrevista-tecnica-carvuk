@@ -6,6 +6,17 @@ Mini e-commerce de barrio para mantener un catálogo de productos, armar un carr
 
 Prueba técnica full-stack para Carvuk ([enunciado](https://carvuk.notion.site/prueba-tecnica-full)).
 
+## 🌐 Producción
+
+| | URL |
+| --- | --- |
+| **App (frontend, Vercel)** | https://entrevista-tecnica-zeta.vercel.app |
+| API (backend, Render) | https://carrito-feliz-api.onrender.com/api/ |
+| Webhook del SII | `https://carrito-feliz-api.onrender.com/webhooks/sii/?token=…` |
+
+- **Cuenta:** para entrar hay que crear una cuenta en el login de Clerk (correo y código de verificación).
+- **Primera carga:** el backend está en el plan gratuito de Render, que **duerme el servicio tras 15 min sin uso**. Por eso la primera petición puede tardar ~50 s mientras despierta.
+
 ## Funcionalidades
 
 | Requisito | Estado |
@@ -86,6 +97,10 @@ Vite redirige `/api/*` al backend en `127.0.0.1:8000`, así que ambos servidores
 cd backend && python manage.py test          # 32 tests
 cd frontend && npm test && npm run lint && npm run build
 ```
+
+Los tests del backend no dependen del `.env`:
+- Corren sobre SQLite en memoria, así que nunca tocan Supabase.
+- Clerk y el SII vienen apagados, y cada test los activa explícitamente si los necesita.
 
 ### Variables de entorno
 
@@ -174,6 +189,17 @@ sequenceDiagram
 
 > El mock admite pocas solicitudes (100 en total). Por eso la emisión **no** se dispara sola al crear la boleta: se pide con el botón. Además, los tests simulan Pipedream y nunca lo llaman.
 
+### Cómo verlo funcionando en producción
+
+1. Entra a https://entrevista-tecnica-zeta.vercel.app y crea una cuenta.
+2. Agrega productos al carrito, genera la boleta y presiona **"Emitir en SII"**.
+3. El backend en Render envía a Pipedream `callbackUrl = https://carrito-feliz-api.onrender.com/webhooks/sii/?token=…`.
+4. En ~20–60 s llega el webhook y la boleta pasa a **Emitida**, con N° SII y PDF. No hace falta recargar.
+
+**Prueba real en producción (15-10-2026):**
+- **Boleta #5:** bruto $6.000, impuesto $900, neto $5.100.
+- **Emisión:** solicitada a las 17:50:20. El webhook llegó a Render a las 17:50:39 con `{"documentId": 5, "status": "issued", "siiCode": "SII-5", "pdfUrl": "…pdf-sample_0.pdf"}`, y la boleta quedó **Emitida**.
+
 ### Evidencia de la prueba real (15-10-2026, desde local con cloudflared)
 
 1. **Webhook sin token:** respondió `403`, y quedó registrado como `WebhookEvent #1` con el error "Token inválido".
@@ -206,6 +232,21 @@ sequenceDiagram
 **Para activarlo**
 1. Crea una aplicación en [dashboard.clerk.com](https://dashboard.clerk.com).
 2. Pon su publishable key en `frontend/.env` (`VITE_CLERK_PUBLISHABLE_KEY`) y en `backend/.env` (`CLERK_PUBLISHABLE_KEY`), junto con `AUTH_ENABLED=True`.
+
+## Deploy
+
+**Backend en Render**
+- Se configura con el blueprint [`render.yaml`](render.yaml): *New → Blueprint*.
+- Al construir, ejecuta `pip install`, `collectstatic` y `migrate`. Sirve la app con `gunicorn`, y los estáticos del admin con WhiteNoise.
+- `SECRET_KEY` y `SII_WEBHOOK_TOKEN` se generan solos.
+- `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` y la URL base del `callbackUrl` salen de `RENDER_EXTERNAL_HOSTNAME`/`RENDER_EXTERNAL_URL`.
+- A mano solo se cargan `DATABASE_URL`, `CORS_ALLOWED_ORIGINS` (la URL de Vercel) y `CLERK_PUBLISHABLE_KEY`.
+- `DATABASE_URL` debe ser la conexión **Session pooler** de Supabase (`aws-0-<región>.pooler.supabase.com`), porque Render no tiene IPv6 y el host directo `db.<ref>.supabase.co` solo responde por IPv6.
+
+**Frontend en Vercel**
+- Se importa el repo con *Root Directory* `frontend`. Vercel detecta Vite solo.
+- Variables: `VITE_API_URL=https://carrito-feliz-api.onrender.com/api` y `VITE_CLERK_PUBLISHABLE_KEY`.
+- [`vercel.json`](frontend/vercel.json) redirige todas las rutas a `index.html`, porque la app es una SPA.
 
 ## API
 
@@ -246,3 +287,4 @@ sequenceDiagram
 
 **Datos**
 - Los productos de ejemplo (leche, pan, aceite, arroz, huevos, azúcar, fideos y café) se cargan con una migración de datos al correr `migrate`.
+- Producción y desarrollo local usan el mismo proyecto de Supabase, por simplicidad para la prueba. Por eso las boletas de las pruebas locales también aparecen en producción (para el mismo usuario).
