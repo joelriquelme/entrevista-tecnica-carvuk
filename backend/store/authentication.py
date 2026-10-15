@@ -1,10 +1,13 @@
 import base64
+import logging
 from dataclasses import dataclass, field
 from functools import lru_cache
 
 import jwt
 from django.conf import settings
 from rest_framework import authentication, exceptions
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -56,7 +59,8 @@ class ClerkJWTAuthentication(authentication.BaseAuthentication):
                 options={'require': ['exp', 'iat', 'sub']},
             )
         except (jwt.PyJWTError, ValueError) as exc:
-            raise exceptions.AuthenticationFailed(f'Token inválido: {exc}')
+            logger.info('Rejected Clerk token: %s', exc)
+            raise exceptions.AuthenticationFailed('Sesión inválida o expirada. Vuelve a iniciar sesión.')
 
         # Only accept tokens minted for our own frontend origins.
         azp = claims.get('azp')
