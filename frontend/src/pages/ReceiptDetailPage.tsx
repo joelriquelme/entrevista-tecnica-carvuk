@@ -111,10 +111,7 @@ export function ReceiptDetailPage() {
             <h1>Boleta N° {receipt.data.id}</h1>
             <SiiStatusBadge status={receipt.data.sii_status} />
           </div>
-          <p className="muted">
-            Generada el {formatDateTime(receipt.data.created_at)}
-            {receipt.data.created_by && <> por {receipt.data.created_by}</>}
-          </p>
+          <p className="muted">Generada el {formatDateTime(receipt.data.created_at)}</p>
 
           <section className="card" aria-labelledby="items-title">
             <h2 id="items-title">Detalle</h2>
