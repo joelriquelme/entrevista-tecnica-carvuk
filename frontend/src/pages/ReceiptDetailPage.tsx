@@ -22,9 +22,6 @@ function SiiSection({ receipt }: { receipt: Receipt }) {
           <dt>Estado</dt>
           <dd>
             <SiiStatusBadge status={receipt.sii_status} />
-            {receipt.sii_status === 'requested' && (
-              <span className="muted small"> Esperando respuesta del SII…</span>
-            )}
           </dd>
         </div>
         <div>
@@ -49,6 +46,12 @@ function SiiSection({ receipt }: { receipt: Receipt }) {
 
       {receipt.sii_status === 'failed' && receipt.sii_error && (
         <p className="alert alert--error">Error del SII: {receipt.sii_error}</p>
+      )}
+      {receipt.sii_status === 'requested' && (
+        <p className="muted small" role="status">
+          <span className="spinner spinner--small" aria-hidden="true" /> Esperando respuesta del SII. Se
+          actualizará sola en cuanto llegue.
+        </p>
       )}
       {receipt.sii_status === 'pending' && (
         <p className="note">La boleta aún no se ha enviado al SII.</p>
