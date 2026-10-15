@@ -23,7 +23,7 @@ class Receipt(models.Model):
         ISSUED = 'issued', 'Emitida'
         FAILED = 'failed', 'Error'
 
-    # Totals are stored at creation time so a receipt never changes if prices or the tax rule change later.
+    # Snapshot: a receipt must not change if prices or the tax rule change later.
     gross_total = models.PositiveIntegerField()
     tax = models.PositiveIntegerField()
     net_total = models.PositiveIntegerField()

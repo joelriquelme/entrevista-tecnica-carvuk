@@ -25,7 +25,7 @@ def sii_is_configured() -> bool:
 
 
 def request_sii_emission(receipt_id: int) -> None:
-    """Ask the external SII service to issue the document. The result arrives later by webhook.
+    """Ask the SII mock to issue the receipt; the result arrives later by webhook.
 
     The status is set to "requested" *before* the HTTP call, because the webhook can
     arrive before this request returns. On failure only a still-"requested" receipt is

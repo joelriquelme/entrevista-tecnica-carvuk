@@ -3,7 +3,7 @@ from rest_framework.permissions import BasePermission
 
 
 class IsAuthenticatedWhenEnabled(BasePermission):
-    """Requires a Clerk session only when AUTH_ENABLED is on (read per request)."""
+    """AUTH_ENABLED is read per request so it can be toggled without reloading DRF settings."""
 
     def has_permission(self, request, view):
         if not settings.AUTH_ENABLED:

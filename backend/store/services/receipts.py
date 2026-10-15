@@ -8,9 +8,7 @@ from .tax import calculate_totals
 def create_receipt(items: list[dict], created_by: str = '') -> Receipt:
     """Create a receipt from cart items [{product_id, quantity}].
 
-    Repeated products are merged, prices are snapshotted and totals are computed
-    with the fixed tax rule. The receipt starts as "pending": the SII emission is
-    requested explicitly afterwards (see services.sii).
+    It starts as "pending": the SII emission is requested separately (services.sii).
     """
     quantities: dict[int, int] = {}
     for item in items:

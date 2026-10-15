@@ -31,10 +31,10 @@ DEBUG = env_bool('DEBUG', False)
 
 ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 if DEBUG:
-    # Allow local tunnels (ngrok / cloudflared) used to receive the SII webhook.
+    # Local tunnels used to receive the SII webhook.
     ALLOWED_HOSTS += ['.ngrok-free.app', '.ngrok.app', '.trycloudflare.com']
 
-# Render exposes the service hostname/URL; use them so production needs less configuration.
+# Set by Render in production.
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -86,7 +86,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database: Supabase Postgres through DATABASE_URL, SQLite as a local fallback.
+# Database (Supabase Postgres)
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -96,7 +96,7 @@ DATABASES = {
     )
 }
 
-# Tests always run on SQLite (in memory) so they never touch Supabase.
+# Tests never touch Supabase.
 TESTING = sys.argv[1:2] == ['test']
 if TESTING:
     DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}
@@ -154,7 +154,7 @@ CLERK_JWKS_URL = os.environ.get('CLERK_JWKS_URL', '')
 # Django REST Framework
 
 REST_FRAMEWORK = {
-    # Clerk auth is always wired; AUTH_ENABLED switches it on/off per request.
+    # AUTH_ENABLED is read per request (see store.permissions).
     'DEFAULT_AUTHENTICATION_CLASSES': ['store.authentication.ClerkJWTAuthentication'],
     'DEFAULT_PERMISSION_CLASSES': ['store.permissions.IsAuthenticatedWhenEnabled'],
     'UNAUTHENTICATED_USER': None,
@@ -165,7 +165,7 @@ REST_FRAMEWORK = {
 }
 
 
-# CORS: the React frontend origins
+# Frontend origins; also the only accepted origins for Clerk tokens (azp).
 
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
 
@@ -174,7 +174,7 @@ CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,h
 
 SII_API_URL = os.environ.get('SII_API_URL', '')
 SII_TIMEOUT_SECONDS = 10
-# Public URL where this backend is reachable (tunnel or production). Used to build the callbackUrl.
+# Base of the callbackUrl: the tunnel URL locally, the Render URL in production.
 PUBLIC_BASE_URL = (os.environ.get('PUBLIC_BASE_URL') or os.environ.get('RENDER_EXTERNAL_URL', '')).rstrip('/')
 # Shared secret sent as a query param in the callbackUrl and checked by the webhook.
 SII_WEBHOOK_TOKEN = os.environ.get('SII_WEBHOOK_TOKEN', '')

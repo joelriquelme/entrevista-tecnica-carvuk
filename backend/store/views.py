@@ -27,7 +27,7 @@ class ReceiptViewSet(
     serializer_class = ReceiptSerializer
 
     def get_queryset(self):
-        # With auth enabled every user only sees the receipts they created.
+        # Without auth there is no user id, so every receipt is listed.
         queryset = super().get_queryset()
         user_id = self._user_id()
         return queryset.filter(created_by=user_id) if user_id else queryset
@@ -43,7 +43,7 @@ class ReceiptViewSet(
 
     @action(detail=True, methods=['post'])
     def emit(self, request, pk=None):
-        """Retry the SII emission of a receipt that is pending or failed."""
+        """Request (or retry) the SII emission."""
         receipt = self.get_object()
         if receipt.sii_status not in (Receipt.SiiStatus.PENDING, Receipt.SiiStatus.FAILED):
             return Response(
