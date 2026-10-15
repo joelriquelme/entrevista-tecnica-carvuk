@@ -288,3 +288,43 @@ sequenceDiagram
 **Datos**
 - Los productos de ejemplo (leche, pan, aceite, arroz, huevos, azúcar, fideos y café) se cargan con una migración de datos al correr `migrate`.
 - Producción y desarrollo local usan el mismo proyecto de Supabase, por simplicidad para la prueba. Por eso las boletas de las pruebas locales también aparecen en producción (para el mismo usuario).
+
+## Propuestas de mejora
+
+Ideas que no alcancé a implementar, ordenadas por el impacto que tendrían para el día a día de la tienda.
+
+### Para el usuario y el negocio
+
+1. **Envío automático al SII al cierre del día, con opción de excluir una boleta.**
+   - **Problema:** hoy la emisión depende de que alguien presione "Emitir en SII". En un día ajetreado es fácil olvidarlo, y la boleta queda sin informar.
+   - **Propuesta:** que la responsabilidad no recaiga del todo en el usuario.
+     - Al cierre del día (a una hora configurable) se envían automáticamente todas las boletas que sigan pendientes.
+     - El botón manual se mantiene para quien quiera emitir al momento.
+   - **Exclusión:** cada boleta tendría la opción **"No enviar al cierre"**, para los casos que requieren revisión antes de informarse, como una venta con un error o un monto por confirmar. Las boletas excluidas:
+     - quedan destacadas al día siguiente, junto con el motivo, para que no se olviden indefinidamente;
+     - aparecen en un resumen del envío: cuántas se enviaron, cuántas se excluyeron y cuáles fallaron.
+2. **Cierre de caja diario.** Un resumen del día con:
+   - el total vendido y el impuesto recaudado;
+   - las boletas emitidas, pendientes y excluidas.
+
+   Se complementa con el envío automático: el dueño revisa el cierre, ve qué se informó al SII y qué quedó pendiente, y cierra el día con la caja cuadrada.
+3. **Enviar la boleta al cliente.** Al terminar la venta, ofrecer mandar el PDF por correo o WhatsApp, como una boleta electrónica, en vez de que solo quede en el historial de la tienda.
+4. **Descuentos y promociones.**
+   - Descuentos porcentuales, 2x1 o "lleve 3 pague 2", muy comunes en un almacén de barrio.
+   - El impuesto se calcularía siempre sobre el monto final cobrado, para que la boleta refleje lo que realmente pagó el cliente.
+5. **Ventas frecuentes.**
+   - Repetir una boleta anterior o guardar un "carrito favorito" para clientes habituales (el pan y la leche de todos los días).
+   - Así se arma la venta en un clic en lugar de buscar producto por producto.
+6. **Auditoría de cambios de precio.** Registrar quién cambió el precio de un producto, cuándo, y el valor anterior y el nuevo. Con varios administradores, esto permite aclarar diferencias en caja o en boletas.
+7. **Roles con Clerk.**
+   - Distinguir entre **administrador** (gestiona el catálogo y los precios) y **cajero** (solo arma carritos y genera boletas), usando la metadata u Organizations de Clerk.
+   - Hoy todo usuario con sesión es administrador (ver supuestos).
+8. **Desactivar productos y manejar stock.**
+   - En vez de eliminar un producto, marcarlo como inactivo, para que no se pueda vender pero conserve su historia.
+   - Llevar inventario que se descuente al generar una boleta y avise cuando quede poco.
+9. **Paginación, filtros y búsqueda.** Paginar el historial, filtrarlo por fecha o estado SII y buscar productos en el catálogo. Hoy funciona bien con pocos datos, pero no escalaría con meses de ventas.
+
+### Técnicas
+
+- **CI con GitHub Actions:** correr en cada push y pull request los tests del backend, el lint, los tests y el build del frontend, y bloquear el merge si algo falla.
+- **Docker Compose:** levantar backend, frontend y un Postgres local con un solo comando, sin instalar Python ni Node.
