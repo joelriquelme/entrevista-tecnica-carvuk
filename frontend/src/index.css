@@ -860,3 +860,8 @@ a:hover {
     padding: var(--space-4);
   }
 }
+
+.items-cell {
+  min-width: 12rem;
+  max-width: 22rem;
+}

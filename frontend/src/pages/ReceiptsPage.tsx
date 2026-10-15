@@ -7,7 +7,8 @@ import { formatDateTime } from '../lib/date'
 import { formatCLP } from '../lib/money'
 import type { Receipt } from '../types'
 
-const countUnits = (receipt: Receipt) => receipt.items.reduce((sum, item) => sum + item.quantity, 0)
+const describeItems = (receipt: Receipt) =>
+  receipt.items.map((item) => `${item.product_name} ×${item.quantity}`).join(', ')
 
 export function ReceiptsPage() {
   const receipts = useReceipts()
@@ -43,7 +44,7 @@ export function ReceiptsPage() {
               <tr>
                 <th scope="col">N°</th>
                 <th scope="col">Fecha</th>
-                <th scope="col" className="num">Productos</th>
+                <th scope="col">Productos</th>
                 <th scope="col" className="num">Neto</th>
                 <th scope="col" className="num">Impuesto</th>
                 <th scope="col" className="num">Total</th>
@@ -60,7 +61,7 @@ export function ReceiptsPage() {
                 <tr key={receipt.id}>
                   <td>{receipt.id}</td>
                   <td className="nowrap">{formatDateTime(receipt.created_at)}</td>
-                  <td className="num">{countUnits(receipt)}</td>
+                  <td className="items-cell">{describeItems(receipt)}</td>
                   <td className="num">{formatCLP(receipt.net_total)}</td>
                   <td className="num">{formatCLP(receipt.tax)}</td>
                   <td className="num strong">{formatCLP(receipt.gross_total)}</td>
