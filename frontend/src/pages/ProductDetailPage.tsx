@@ -18,7 +18,7 @@ export function ProductDetailPage() {
   const product = useProduct(productId)
   const [quantity, setQuantity] = useState(1)
   const [isEditing, setIsEditing] = useState(false)
-  const { requestDelete, deletingId, error: deleteError } = useConfirmDeleteProduct()
+  const { requestDelete, confirmDialog, deletingId, error: deleteError } = useConfirmDeleteProduct()
 
   if (!Number.isInteger(productId) || productId <= 0) return <NotFoundPage />
 
@@ -78,6 +78,7 @@ export function ProductDetailPage() {
           {isEditing && (
             <ProductFormDialog product={product.data} onClose={() => setIsEditing(false)} />
           )}
+          {confirmDialog}
         </article>
       )}
     </section>

@@ -14,7 +14,7 @@ type DialogState = { mode: 'create' } | { mode: 'edit'; product: Product } | nul
 export function CatalogPage() {
   const products = useProducts()
   const [dialog, setDialog] = useState<DialogState>(null)
-  const { requestDelete, deletingId, error: deleteError, reset: resetDelete } =
+  const { requestDelete, confirmDialog, deletingId, error: deleteError, reset: resetDelete } =
     useConfirmDeleteProduct()
 
   return (
@@ -90,6 +90,7 @@ export function CatalogPage() {
           onClose={() => setDialog(null)}
         />
       )}
+      {confirmDialog}
     </section>
   )
 }

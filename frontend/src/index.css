@@ -750,6 +750,16 @@ a:hover {
   gap: var(--space-3);
 }
 
+.dialog__body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+.dialog__body p {
+  margin: 0;
+}
+
 .form {
   display: grid;
   gap: var(--space-4);
