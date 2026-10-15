@@ -1,3 +1,19 @@
+# Comentarios del Dev
+
+Antes de toda la documentación quería escribir un pequeño texto escrito 100% por mi y no por Claude para describir un poco como se realizó el trabajo y mis sensaciones.
+
+## Ahora ocupé Claude Code
+
+Para realizar la prueba utilicé Claude Code como se puede apreciar en los commits, esto hizo que la productividad se disparara, realicé el mismo trabajo que la vez pasada pero en un x5 de rápidez. Esto último no siempre es algo bueno, ya que al generar tanto código TAN rápido es muy probable que hayan cosas que no entienda o nisiquiera alcance a ver, es por esto que siendo sincero, entiendo aproximadamente un 90-95% del código.
+
+Ahora bien, como comenté en ambas entrevistas, creo que hoy en día la *implementación* de las features no es realmente el cuello de botella en un desarrollo, como pude comprobar ahora mismo; la implementación, depuración y hasta deploy fue considerablemente más sencillo con un agente tan potente como este. Sin embargo, el verdadero problema recae en entender realmente la lógica de negocio y qué requiere el/los usuario(s), es por esto que agregué una última sección en el README con propuestas de mejora enfocadas más en el usuario y el negocio que en lo técnico. 
+
+Por último, agradecer la oportunidad que me dieron al realizar esta prueba, aprendí harto! como por ejemplo en el uso de agentes, nunca antes había ocupado Claude hasta esta semana que preparé bastante la entrevista, también aprendí mucho al hacer deploy de la app. 
+
+Espero les guste el resultado final!
+
+Saludos.
+
 # Carrito Feliz 🛒
 
 > 🇬🇧 [English version](README.en.md)
@@ -291,7 +307,7 @@ sequenceDiagram
 
 ## Propuestas de mejora
 
-Ideas que no alcancé a implementar, ordenadas por el impacto que tendrían para el día a día de la tienda.
+Ideas que no implementé pero que surgieron durante el desarrollo, ordenadas por el impacto que tendrían para el día a día de la tienda.
 
 ### Para el usuario y el negocio
 
